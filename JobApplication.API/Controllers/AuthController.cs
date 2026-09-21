@@ -1,5 +1,5 @@
 using JobApplication.Application.DTOs;
-using JobApplication.Application.Interfaces;
+using JobApplication.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -20,33 +20,21 @@ namespace JobApplication.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            try
-            {
-                var response = await _authService.RegisterAsync(request);
-                return Ok(response);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var result = await _authService.RegisterAsync(request);
+            if (result.IsFailure)
+                return StatusCode(result.Error.Code, new { error = result.Error.Message });
+
+            return Ok(result.Value);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            try
-            {
-                var response = await _authService.LoginAsync(request);
-                return Ok(response);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { error = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var result = await _authService.LoginAsync(request);
+            if (result.IsFailure)
+                return StatusCode(result.Error.Code, new { error = result.Error.Message });
+
+            return Ok(result.Value);
         }
     }
 }

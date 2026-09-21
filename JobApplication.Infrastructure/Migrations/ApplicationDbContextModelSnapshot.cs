@@ -38,16 +38,25 @@ namespace JobApplication.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("Candidates", (string)null);
+                    b.ToTable("Candidates");
                 });
 
             modelBuilder.Entity("JobApplication.Domain.Entities.Job", b =>
@@ -58,11 +67,17 @@ namespace JobApplication.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<int>("RecruiterId")
@@ -72,11 +87,14 @@ namespace JobApplication.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RecruiterId");
 
-                    b.ToTable("Jobs", (string)null);
+                    b.ToTable("Jobs");
                 });
 
             modelBuilder.Entity("JobApplication.Domain.Entities.JobCandidateApplication", b =>
@@ -93,13 +111,19 @@ namespace JobApplication.Infrastructure.Migrations
                     b.Property<int>("CandidateId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("JobApplicationStatus")
                         .HasColumnType("int");
 
                     b.Property<int>("JobId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StatusUpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
@@ -109,7 +133,7 @@ namespace JobApplication.Infrastructure.Migrations
                     b.HasIndex("CandidateId", "JobId")
                         .IsUnique();
 
-                    b.ToTable("JobCandidateApplications", (string)null);
+                    b.ToTable("JobCandidateApplications");
                 });
 
             modelBuilder.Entity("JobApplication.Domain.Entities.Recruiter", b =>
@@ -128,12 +152,21 @@ namespace JobApplication.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("Recruiters", (string)null);
+                    b.ToTable("Recruiters");
                 });
 
             modelBuilder.Entity("JobApplication.Infrastructure.Identity.ApplicationUser", b =>

@@ -1,4 +1,4 @@
-using JobApplication.Application.Interfaces;
+using JobApplication.Application.Interfaces.IServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,7 +18,7 @@ namespace JobApplication.Infrastructure.Services
 
         public string GenerateToken(string userId, string email, string role)
         {
-            var jwtSettings = _configuration.GetSection("Jwt");
+            var jwtSettings = _configuration.GetSection("JwtOptions");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

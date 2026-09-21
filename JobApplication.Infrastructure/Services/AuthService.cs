@@ -1,5 +1,7 @@
+using JobApplication.Application.Abstractions.ResultPattern;
 using JobApplication.Application.DTOs;
 using JobApplication.Application.Interfaces;
+using JobApplication.Application.Interfaces.IServices;
 using JobApplication.Domain.Entities;
 using JobApplication.Domain.Enums;
 using JobApplication.Infrastructure.Identity;
@@ -26,11 +28,11 @@ namespace JobApplication.Infrastructure.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request)
         {
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
             if (existingUser != null)
-                throw new InvalidOperationException("A user with this email already exists.");
+                return Result<AuthResponse>.Failure(new Error(400, "A user with this email already exists."));
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -46,16 +48,18 @@ namespace JobApplication.Infrastructure.Services
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (!result.Succeeded)
                 {
+                    await _unitOfWork.RollbackTransactionAsync();
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException(errors);
+                    return Result<AuthResponse>.Failure(new Error(400, errors));
                 }
 
                 var roleName = request.UserType.ToString();
                 var roleResult = await _userManager.AddToRoleAsync(user, roleName);
                 if (!roleResult.Succeeded)
                 {
+                    await _unitOfWork.RollbackTransactionAsync();
                     var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException(errors);
+                    return Result<AuthResponse>.Failure(new Error(400, errors));
                 }
 
                 if (request.UserType == UserType.Recruiter)
@@ -84,12 +88,12 @@ namespace JobApplication.Infrastructure.Services
 
                 var token = _tokenService.GenerateToken(user.Id, user.Email!, roleName);
 
-                return new AuthResponse
+                return Result<AuthResponse>.Success(new AuthResponse
                 {
                     Token = token,
                     Email = user.Email!,
                     Role = roleName
-                };
+                });
             }
             catch
             {
@@ -98,27 +102,27 @@ namespace JobApplication.Infrastructure.Services
             }
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
-                throw new UnauthorizedAccessException("Invalid email or password.");
+                return Result<AuthResponse>.Failure(new Error(401, "Invalid email or password."));
 
             var validPassword = await _userManager.CheckPasswordAsync(user, request.Password);
             if (!validPassword)
-                throw new UnauthorizedAccessException("Invalid email or password.");
+                return Result<AuthResponse>.Failure(new Error(401, "Invalid email or password."));
 
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? user.UserType.ToString();
 
             var token = _tokenService.GenerateToken(user.Id, user.Email!, role);
 
-            return new AuthResponse
+            return Result<AuthResponse>.Success(new AuthResponse
             {
                 Token = token,
                 Email = user.Email!,
                 Role = role
-            };
+            });
         }
     }
 }

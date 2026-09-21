@@ -1,4 +1,5 @@
 using JobApplication.Application.Interfaces;
+using JobApplication.Application.Interfaces.IServices;
 using JobApplication.Infrastructure.Identity;
 using JobApplication.Infrastructure.Persistence;
 using JobApplication.Infrastructure.Repositories;

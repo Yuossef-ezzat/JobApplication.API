@@ -4,6 +4,7 @@ using JobApplication.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -23,9 +24,6 @@ namespace JobApplication.API
             builder.Services.AddApplicationServices();
 
             // JWT Authentication
-            var jwtSettings = builder.Configuration.GetSection("Jwt");
-            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
-
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -39,9 +37,9 @@ namespace JobApplication.API
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    ValidIssuer = builder.Configuration["JwtOptions:Issuer"],
+                    ValidAudience = builder.Configuration["JwtOptions:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:Key"]!))
                 };
             });
 
@@ -52,22 +50,22 @@ namespace JobApplication.API
             {
                 options.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
-                    document.Components ??= new Microsoft.OpenApi.Models.OpenApiComponents();
-                    document.Components.SecuritySchemes.Add("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    document.Components ??= new OpenApiComponents();
+                    document.Components.SecuritySchemes.Add("Bearer", new OpenApiSecurityScheme
                     {
-                        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                        Type = SecuritySchemeType.Http,
                         Scheme = "bearer",
                         BearerFormat = "JWT",
                         Description = "Enter JWT Bearer token"
                     });
-                    document.SecurityRequirements.Add(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                    document.SecurityRequirements.Add(new OpenApiSecurityRequirement
                     {
                         {
-                            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                            new OpenApiSecurityScheme
                             {
-                                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                                Reference = new OpenApiReference
                                 {
-                                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                    Type = ReferenceType.SecurityScheme,
                                     Id = "Bearer"
                                 }
                             },
@@ -102,11 +100,9 @@ namespace JobApplication.API
                 app.MapOpenApi();
                 app.MapScalarApiReference(options =>
                 {
-                    options.WithPreferredScheme("Bearer");
-                    options.WithHttpBearerAuthentication(bearer =>
-                    {
-                        bearer.Token = string.Empty;
-                    });
+                    options.AddPreferredSecuritySchemes("Bearer");
+                   
+                    
                 });
             }
 

@@ -1,5 +1,4 @@
-using JobApplication.Application.Interfaces;
-using JobApplication.Application.Services;
+using JobApplication.Application.Interfaces.IServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JobApplication.Application
@@ -8,8 +7,8 @@ namespace JobApplication.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IJobService, JobService>();
-            services.AddScoped<IApplicationService, ApplicationService>();
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
             return services;
         }

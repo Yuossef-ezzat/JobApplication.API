@@ -17,5 +17,35 @@ namespace JobApplication.Infrastructure.Repositories
         {
             return await _dbSet.AnyAsync(a => a.CandidateId == candidateId && a.JobId == jobId, cancellationToken);
         }
+
+        public async Task<IReadOnlyList<JobCandidateApplication>> GetByCandidateIdWithDetailsAsync(int candidateId, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .Include(a => a.Job)
+                    .ThenInclude(j => j.Recruiter)
+                .Include(a => a.Candidate)
+                .Where(a => a.CandidateId == candidateId)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<JobCandidateApplication>> GetByJobIdWithCandidateAsync(int jobId, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .Include(a => a.Candidate)
+                .Include(a => a.Job)
+                .Where(a => a.JobId == jobId)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<JobCandidateApplication?> GetWithDetailsByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .Include(a => a.Job)
+                    .ThenInclude(j => j.Recruiter)
+                .Include(a => a.Candidate)
+                .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+        }
     }
 }

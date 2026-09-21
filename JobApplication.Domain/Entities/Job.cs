@@ -18,6 +18,24 @@ namespace JobApplication.Domain.Entities
                 throw new InvalidOperationException("Job is already closed.");
 
             IsActive = false;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void Update(string title, string description)
+        {
+            if (!IsActive)
+                throw new InvalidOperationException("Cannot update a closed job.");
+
+            Title = title;
+            Description = description;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void SoftDelete()
+        {
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+            IsActive = false;
         }
     }
 }

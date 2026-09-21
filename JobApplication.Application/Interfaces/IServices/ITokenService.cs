@@ -1,4 +1,4 @@
-namespace JobApplication.Application.Interfaces
+namespace JobApplication.Application.Interfaces.IServices
 {
     public interface ITokenService
     {

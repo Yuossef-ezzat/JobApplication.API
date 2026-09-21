@@ -55,6 +55,12 @@ namespace JobApplication.Infrastructure.Persistence
             {
                 entity.HasIndex(a => new { a.CandidateId, a.JobId }).IsUnique();
             });
+
+            // Global Query Filters for Soft Delete
+            builder.Entity<Job>().HasQueryFilter(j => !j.IsDeleted);
+            builder.Entity<JobCandidateApplication>().HasQueryFilter(a => !a.IsDeleted);
+            builder.Entity<Candidate>().HasQueryFilter(c => !c.IsDeleted);
+            builder.Entity<Recruiter>().HasQueryFilter(r => !r.IsDeleted);
         }
     }
 }

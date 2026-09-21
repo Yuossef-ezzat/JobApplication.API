@@ -1,4 +1,4 @@
-using JobApplication.Application.Interfaces;
+using JobApplication.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
