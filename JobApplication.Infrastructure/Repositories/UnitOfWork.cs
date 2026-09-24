@@ -1,13 +1,13 @@
 using JobApplication.Application.Interfaces;
 using JobApplication.Domain.Entities;
-using JobApplication.Infrastructure.Repositories;
+using JobApplication.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JobApplication.Infrastructure.Persistence
+namespace JobApplication.Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
@@ -19,6 +19,7 @@ namespace JobApplication.Infrastructure.Persistence
         public IApplicationRepository Applications { get; }
         public ICandidateRepository Candidates { get; }
         public IRecruiterRepository Recruiters { get; }
+        public ITokenRepository Tokens { get; }
 
         public UnitOfWork(
             ApplicationDbContext context,

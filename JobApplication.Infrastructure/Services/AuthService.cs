@@ -86,11 +86,11 @@ namespace JobApplication.Infrastructure.Services
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                var token = _tokenService.GenerateToken(user.Id, user.Email!, roleName);
+                var token = _tokenService.GenerateAccessToken(user.Id, user.Email!, roleName);
 
                 return Result<AuthResponse>.Success(new AuthResponse
                 {
-                    Token = token,
+                    Token = token.Value,
                     Email = user.Email!,
                     Role = roleName
                 });
@@ -115,11 +115,11 @@ namespace JobApplication.Infrastructure.Services
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? user.UserType.ToString();
 
-            var token = _tokenService.GenerateToken(user.Id, user.Email!, role);
+            var token = _tokenService.GenerateAccessToken(user.Id, user.Email!, role);
 
             return Result<AuthResponse>.Success(new AuthResponse
             {
-                Token = token,
+                Token = token.Value,
                 Email = user.Email!,
                 Role = role
             });

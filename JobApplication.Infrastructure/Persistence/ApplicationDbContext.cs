@@ -50,6 +50,16 @@ namespace JobApplication.Infrastructure.Persistence
                       .IsRequired()
                       .OnDelete(DeleteBehavior.Restrict);
             });
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasIndex(t => t.UserId);
+                entity.HasIndex(t=> t.HashToken).IsUnique();
+                entity.HasOne<ApplicationUser>()
+                      .WithMany()
+                      .HasForeignKey(t => t.UserId)
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
             builder.Entity<JobCandidateApplication>(entity =>
             {

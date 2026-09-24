@@ -11,6 +11,7 @@ namespace JobApplication.Application.Interfaces
         IApplicationRepository Applications { get; }
         ICandidateRepository Candidates { get; }
         IRecruiterRepository Recruiters { get; }
+        ITokenRepository Tokens { get; }
 
         IRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
 

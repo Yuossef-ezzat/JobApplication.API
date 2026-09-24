@@ -1,12 +1,16 @@
+using Hangfire;
 using JobApplication.API.Middlewares;
 using JobApplication.Application;
+using JobApplication.Application.Interfaces.IServices;
 using JobApplication.Infrastructure;
+using JobApplication.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.Text;
+using System;
 
 namespace JobApplication.API
 {
@@ -22,6 +26,19 @@ namespace JobApplication.API
             // Infrastructure & Application DI Layers
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplicationServices();
+
+            builder.Services.AddHangfire(config => config
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(
+                builder.Configuration.GetConnectionString("HangfireConnection")));
+
+            builder.Services.AddHangfireServer();
+            builder.Services.AddScoped<IBackgroundJob, HangfireService>();
+            builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+
+            // Register the auto-close recurring job service
+            builder.Services.AddScoped<AutoCloseJobsService>();
 
             // JWT Authentication
             builder.Services.AddAuthentication(options =>
@@ -105,7 +122,30 @@ namespace JobApplication.API
                     
                 });
             }
+            app.UseHangfireDashboard("/hangfire");
 
+            // ────────────────────────────────────────────────────────────────────────
+            // Recurring Job: Auto-Close Stale Jobs
+            //
+            // RecurringJob.AddOrUpdate(jobId, method, cronExpression)
+            //   • jobId         – unique name shown in the Hangfire Dashboard
+            //   • method        – lambda pointing to the method Hangfire will invoke
+            //   • cronExpression – how often to run (Cron helper or raw string)
+            //
+            // Cron expression used: "0 2 * * *"  →  every day at 02:00 UTC
+            //   ┌──── minute (0)
+            //   │ ┌── hour   (2)
+            //   │ │ ┌ day-of-month (*)
+            //   0 2 * * *
+            // ────────────────────────────────────────────────────────────────────────
+            RecurringJob.AddOrUpdate<AutoCloseJobsService>(
+                recurringJobId: "auto-close-stale-jobs",
+                methodCall:     svc => svc.AutoCloseStaleJobsAsync(),
+                cronExpression: "0 2 * * *",            // every day at 02:00 UTC
+                options: new RecurringJobOptions
+                {
+                    TimeZone = TimeZoneInfo.Utc
+                });
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

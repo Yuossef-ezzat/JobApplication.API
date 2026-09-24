@@ -15,15 +15,19 @@ namespace JobApplication.Application.Features.JobCandidateApplication.Commands.C
     public class CancelApplicationHandler : IRequestHandler<CancelApplicationCommand, Result>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBackgroundJob _backgroundJob;
         private readonly ICurrentUserService _currentUserService;
-        public CancelApplicationHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public CancelApplicationHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IBackgroundJob backgroundJob)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _backgroundJob = backgroundJob;
+            
         }
         public async Task<Result> Handle(CancelApplicationCommand request, CancellationToken cancellationToken)
         {
             var application = await _unitOfWork.Applications.GetByIdAsync(request.ApplicationId, cancellationToken);
+            _backgroundJob.EnqueueJob<INotificationService>(s => s.SendNotification(application.Id));
             if (application == null)
                 return Result.Failure(new Error(404, "Application not found."));
 
@@ -45,6 +49,8 @@ namespace JobApplication.Application.Features.JobCandidateApplication.Commands.C
 
             _unitOfWork.Applications.Update(application);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            
 
             return Result.Success();
         }

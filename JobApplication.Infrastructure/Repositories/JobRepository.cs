@@ -46,5 +46,15 @@ namespace JobApplication.Infrastructure.Repositories
                 .OrderByDescending(j => j.Id)
                 .ToListAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Returns all active jobs created before <paramref name="cutoffDate"/> (open too long).
+        /// </summary>
+        public async Task<IReadOnlyList<Job>> GetStaleActiveJobsAsync(DateTime cutoffDate, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .Where(j => j.IsActive && j.CreatedAt < cutoffDate)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
